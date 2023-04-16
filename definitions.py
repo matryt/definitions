@@ -13,11 +13,15 @@ def infinitif_definition(word):
     infinitif = soup.find("span", class_="conj_lemme").get_text()
     return infinitif
 
+def locutions(texte):
+    pass
 
-def definition(word):
+
+def definition(word, infinitif = False):
     vgm_url = f'https://dictionnaire.lerobert.com/definition/{word}'
     retour = requests.get(vgm_url)
-    if retour.status_code == 200:
+    r = retour.status_code == 200
+    if r:
         html_text = retour.text
         soup = BeautifulSoup(html_text, 'html.parser')
         definitions = soup.find(id="definitions")
@@ -28,25 +32,22 @@ def definition(word):
             if len(resultat) == 0:
                 resultat = i.find_all("div", class_="d_ptma")
             for j in resultat:
-                s = j.get_text()
-                if '\n' in s:
-                    s = s[s.index('\n')+1:-1]
-                if '➙\xa0' in s:
-                    s = s[:s.index('➙\xa0')-1]
-                if '\xa0' in s:
-                    s = s.replace("\xa0", " ")
-                while '\n\n' in s:
-                    s = s.replace('\n\n', '\n')
+                l = ["d_dfn", "d_xpl"]
+                i = 0
+                define = j.find("span", class_=l[i])
+                while not define and i<len(l):
+                    i += 1
+                    define = j.find("span", class_=l[i])
+                s = define.get_text()
                 index = resultat.index(j)
                 s = s[0].upper() + s[1:]
                 print(f"Définition {index + 1} : {s} \n++++ \n")
 
-
-    else:
+    if not infinitif:
         verbe = infinitif_definition(word)
-        if not verbe:
-            raise ValueError("Mot inconnu dans le dictionnaire Le Robert. S'il s'agit d'une forme conjuguée, il faut entrer le verbe à l'infinitif !")
-        else:
+        if verbe and verbe != word:
             print(f"Affichage de la définition de l'infinitif {verbe}, correspondant à ce mot !\n")
-            definition(verbe)
+            definition(verbe, True)
+        elif not r:
+            raise ValueError("Mot inconnu dans le dictionnaire Le Robert. S'il s'agit d'une forme conjuguée, il faut entrer le verbe à l'infinitif !")
 definition(mot)
