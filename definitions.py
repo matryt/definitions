@@ -13,10 +13,6 @@ def infinitif_definition(word):
     infinitif = soup.find("span", class_="conj_lemme").get_text()
     return infinitif
 
-def locutions(texte):
-    pass
-
-
 def definition(word, infinitif = False):
     vgm_url = f'https://dictionnaire.lerobert.com/definition/{word}'
     retour = requests.get(vgm_url)
